@@ -1,19 +1,13 @@
 import os
 import re
 import shutil
-import urllib.request
 import tempfile
-import glob
-import json
 from bs4 import BeautifulSoup
 import requests
 import zipfile
 
 TECHPOWERUP_URL="https://www.techpowerup.com/download/"
 DEFAULT_DLL_NAMES=["nvngx_dlss.dll", "nvngx_dlssg.dll", "nvngx_dlssd.dll"]
-NEXUS_MOD_DOMAIN="site"
-NEXUS_MOD_ID=550
-NEXUS_FILE_URL=f'https://api.nexusmods.com/v1/games/{NEXUS_MOD_DOMAIN}/mods/{NEXUS_MOD_ID}/files'
 GAME_DIRECTORIES=["/"]
 DLL_BLACKLIST=["/usr/lib/nvidia", ".local/share/Trash/files", "/tmp/", "/Cheesy DLSS Updater/", "/steamapps/downloading/", "/.Trash-"]
 
@@ -63,36 +57,6 @@ def fetch_dlss_dll(DLL_NAME, DLSS_URL):
 fetch_dlss_dll(DEFAULT_DLL_NAMES[0], TECHPOWERUP_URL+"nvidia-dlss-dll/")
 fetch_dlss_dll(DEFAULT_DLL_NAMES[1], TECHPOWERUP_URL+"nvidia-dlss-3-frame-generation-dll/")
 fetch_dlss_dll(DEFAULT_DLL_NAMES[2], TECHPOWERUP_URL+"nvidia-dlss-3-ray-reconstruction-dll/")
-
-print(os.listdir(temp_dir.name))
-
-tweaks_folders = glob.glob("DLSSTweaks*/")
-if tweaks_folders:
-    tweaks_folders.sort()
-    shutil.copytree(tweaks_folders[-1], temp_dir.name+"/DLSSTweaks")
-
-else:
-    tweaks_zips = glob.glob("DLSSTweaks*.zip")
-    if tweaks_zips:
-        tweaks_zips.sort()
-        with zipfile.ZipFile(tweaks_zips[-1], 'r') as zip_ref:
-            zip_ref.extractall(temp_dir.name+"/DLSSTweaks")
-
-    else:
-        with open('credentials.json', 'r') as credentials_file:
-            NEXUS_API_KEY = json.load(credentials_file)['nexus_api_key']
-            nexus_headers = {
-                'apikey': NEXUS_API_KEY
-            }
-            response = requests.get(NEXUS_FILE_URL+f'.json', headers=nexus_headers)
-            response.raise_for_status()
-            file_id = response.json()['files'][-1]['id'][0]
-            response = requests.get(NEXUS_FILE_URL+f'/{file_id}/download_link.json', headers=nexus_headers)
-            response.raise_for_status()
-            tweaks_download_link = response.json()[0]['URI']
-            urllib.request.urlretrieve(tweaks_download_link, temp_dir.name+"/DLSSTweaks.zip")
-            with zipfile.ZipFile(temp_dir.name+"/DLSSTweaks.zip", 'r') as zip_ref:
-                zip_ref.extractall(temp_dir.name+"/DLSSTweaks")
 
 print(os.listdir(temp_dir.name))
 
